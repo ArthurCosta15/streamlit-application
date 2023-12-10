@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Carregando os dados
-@st.cache_data
+@st.cache_resource
 def load_data():
     with st.spinner('Carregando dados...'):
         df = pd.read_csv('video_games.csv')
