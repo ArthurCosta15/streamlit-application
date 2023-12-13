@@ -1,9 +1,9 @@
-from matplotlib import pyplot as plt
 import streamlit as st
 import pandas as pd
-import pages.general as page_geral
-import pages.semi_detailed as page_semi_detailed
-import pages.detailed as page_detailed
+import pages.tabelas.general as page_geral
+import pages.tabelas.semi_detailed as page_semi_detailed
+import pages.tabelas.detailed as page_detailed
+from matplotlib import pyplot as plt
 
 # Função para carregar dados
 @st.cache_data
