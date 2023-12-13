@@ -4,7 +4,7 @@ import pages.general as page_geral
 import pages.semi_detailed as page_semi_detailed
 import pages.detailed as page_detailed
 
-# Carregando os dados
+# Função para carregar dados
 @st.cache_data
 def load_data():
     with st.spinner('Carregando dados...'):
@@ -14,42 +14,78 @@ def load_data():
         df['year'] = df['release_date'].dt.year
     return df
 
+# Função para a página inicial com informações gerais
+def show_main_page():
+
+    # Seção de Descrição e Informações sobre o Base de Dados
+    st.write(
+        """
+        ## Descrição da Base de Dados:
+
+        Este conjunto de dados oferece uma visão geral detalhada de videogames em várias plataformas. Abrange uma ampla gama de informações, tornando-se um recurso valioso para a compreensão da evolução, popularidade e diversidade temática dos videogames. Ideal para análise de tendências de jogos, preferências de jogadores e dinâmicas específicas de plataforma, este conjunto de dados é uma ferramenta fundamental para pesquisadores, desenvolvedores de jogos e analistas de mercado.
+
+        ## Colunas da Base de Dados:
+
+        - **nome:** O título do videogame.
+        - **plataforma:** A plataforma de jogos na qual o jogo está disponível (por exemplo, PlayStation, Xbox).
+        - **release_date:** A data em que o jogo foi lançado.
+        - **resumo:** Uma breve descrição ou resumo do enredo do jogo ou dos principais recursos.
+        - **user_review:** Avaliação da avaliação do usuário, indicando a recepção e popularidade do jogo.
+
+        ## Tamanho da Base de Dados:
+        
+        - 5 MB
+
+        ## Link para Baixar o Base de Dados:
+        
+        [Download da Base de Dados](https://www.kaggle.com/datasets/maso0dahmed/video-games-data)
+        """
+    )
+
+# Função para a página de filtros
+def show_filter_page(df, pages):
+    st.markdown("### Análise de Dados de Jogos em diferentes PLATAFORMAS!")
+    st.sidebar.title('Menu')
+    pages = st.sidebar.selectbox('Níveis', ['Nível Geral', 'Nível Semi-Detalhado', 'Nível Detalhado'])
+
+    # Filtro para a plataforma
+    platform_options = ['Todos'] + list(df['platform'].unique())
+    selected_platforms = st.multiselect('Selecione a(s) plataforma(s)', platform_options)
+
+    # Filtro para o ano de lançamento
+    release_year = st.slider('Selecione o ano de lançamento', min(df['year']), max(df['year']))
+
+    # Filtro para o mês de lançamento
+    months = {'Todos': 0, 'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4, 'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8, 'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12}
+    release_month = st.selectbox('Selecione o mês de lançamento', list(months.keys()))
+
+    # Convertendo o mês selecionado para número
+    release_month = months[release_month]
+
+    # Filtrar dados
+    if 'Todos' in selected_platforms:
+        df_filtered = df  # Não aplicar filtro de plataforma se 'Todos' estiver selecionado
+    else:
+        df_filtered = df[df['platform'].isin(selected_platforms)]
+
+    df_filtered = df_filtered.query('year == @release_year & (month == @release_month | @release_month == 0)')
+
+    if pages == 'Nível Geral':
+        page_geral.show_general(df_filtered)
+
+    if pages == 'Nível Semi-Detalhado':
+        page_semi_detailed.show_semi_detailed(df_filtered)
+
+    if pages == 'Nível Detalhado':
+        page_detailed.show_detailed(df_filtered)
+
+# Carregar dados
 df = load_data()
 
-# Título
-st.markdown("### Análise de Dados de Jogos em diferentes PLATAFORMAS!")
-st.sidebar.markdown("## Projeto Final - Arthur César Ferreira Costa")
-st.sidebar.title('Menu')
-pages = st.sidebar.selectbox('Níveis', ['Nível Geral', 'Nível Semi-Detalhado', 'Nível Detalhado'])
+# Lógica de roteamento
+main_page = st.sidebar.radio('Páginas', ['Página Inicial', 'Página de Filtros'])
 
-# Filtro para a plataforma
-platform_options = ['Todos'] + list(df['platform'].unique())
-selected_platforms = st.multiselect('Selecione a(s) plataforma(s)', platform_options)
-
-# Filtro para o ano de lançamento
-release_year = st.slider('Selecione o ano de lançamento', min(df['year']), max(df['year']))
-
-# Filtro para o mês de lançamento
-months = {'Todos': 0, 'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4, 'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8, 'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12}
-release_month = st.selectbox('Selecione o mês de lançamento', list(months.keys()))
-
-# Convertendo o mês selecionado para número
-release_month = months[release_month]
-
-# Filtrar dados
-if 'Todos' in selected_platforms:
-    df_filtered = df  # Não aplicar filtro de plataforma se 'Todos' estiver selecionado
+if main_page == 'Página Inicial':
+    show_main_page()
 else:
-    df_filtered = df[df['platform'].isin(selected_platforms)]
-
-df_filtered = df_filtered.query('year == @release_year & (month == @release_month | @release_month == 0)')
-
-
-if pages == 'Nível Geral':
-    page_geral.show_general(df_filtered)
-
-if pages == 'Nível Semi-Detalhado':
-    page_semi_detailed.show_semi_detailed(df_filtered)
-
-if pages == 'Nível Detalhado':
-    page_detailed.show_detailed(df_filtered)
+    show_filter_page(df, main_page)
