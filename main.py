@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import streamlit as st
 import pandas as pd
 import pages.general as page_geral
@@ -78,6 +79,38 @@ def show_filter_page(df, pages):
 
     if pages == 'Nível Detalhado':
         page_detailed.show_detailed(df_filtered)
+
+    # Selectbox na barra lateral para escolher o gráfico a ser exibido
+    selected_chart = st.sidebar.selectbox('Escolha um gráfico', ['Nenhum'] + ['Plataformas Mais Populares', 'Tendências ao Longo do Tempo', 'Distribuição de Avaliações de Usuários'])
+
+    # Verifica se uma opção válida foi selecionada
+    if selected_chart:
+        # Gráficos
+        if selected_chart == 'Plataformas Mais Populares':
+            platform_counts = df_filtered['platform'].value_counts()
+            plt.figure(figsize=(10, 6))
+            plt.bar(platform_counts.index, platform_counts.values, color='skyblue')
+            plt.xlabel('Plataforma')
+            plt.ylabel('Número de Jogos')
+            plt.title('Número de Jogos por Plataforma')
+            st.pyplot(plt)
+
+        elif selected_chart == 'Tendências ao Longo do Tempo':
+            monthly_trends = df_filtered.groupby(['year', 'month']).size().reset_index(name='count')
+            plt.figure(figsize=(12, 6))
+            plt.plot(monthly_trends['year'].astype(str) + '-' + monthly_trends['month'].astype(str), monthly_trends['count'], marker='o')
+            plt.xlabel('Data de Lançamento')
+            plt.ylabel('Número de Jogos Lançados')
+            plt.title('Tendências de Lançamento de Jogos ao Longo do Tempo')
+            plt.xticks(rotation=45)
+            st.pyplot(plt)
+
+        elif selected_chart == 'Distribuição de Avaliações de Usuários':
+            user_review_distribution = df_filtered['user_review'].value_counts()
+            plt.figure(figsize=(8, 8))
+            plt.pie(user_review_distribution, labels=user_review_distribution.index, autopct='%1.1f%%', startangle=90, colors=['gold', 'lightcoral', 'lightgreen', 'lightblue'])
+            plt.title('Distribuição de Avaliações de Usuários')
+            st.pyplot(plt)
 
 # Carregar dados
 df = load_data()
